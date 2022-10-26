@@ -333,8 +333,6 @@ func (upi *UserPlaneInformation) GenerateDefaultPath(selection *UPFSelectionPara
 
 	//TODO get the right source node by using user location info inside UPFSelectionParams
 
-	var cellid = selection.UeLocation.NrLocation.GlobalGnbId.GNbId
-	logger.CtxLog.Debug(cellid)
 	for _, node := range upi.AccessNetwork {
 		if node.Type == UPNODE_AN {
 			source = node
