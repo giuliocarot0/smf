@@ -85,7 +85,7 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 	// IP Allocation
 	upfSelectionParams := &smf_context.UPFSelectionParams{
 		//TODO: retrieve user location (at least gNB ID in order to choose an UPF which can communicate with that gNB)
-		UeLocation: createData.UeLocation,
+		//UeLocation: createData.UeLocation,
 		Dnn: createData.Dnn,
 		SNssai: &smf_context.SNssai{
 			Sst: createData.SNssai.Sst,
