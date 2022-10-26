@@ -331,6 +331,10 @@ func (upi *UserPlaneInformation) GenerateDefaultPath(selection *UPFSelectionPara
 	var source *UPNode
 	var destinations []*UPNode
 
+	//TODO get the right source node by using user location info inside UPFSelectionParams
+
+	var cellid = selection.UeLocation.NrLocation.GlobalGnbId.GNbId
+	logger.CtxLog.Debug(cellid)
 	for _, node := range upi.AccessNetwork {
 		if node.Type == UPNODE_AN {
 			source = node
@@ -376,6 +380,7 @@ func (upi *UserPlaneInformation) GenerateDefaultPath(selection *UPFSelectionPara
 func (upi *UserPlaneInformation) GenerateDefaultPathToUPF(selection *UPFSelectionParams, destination *UPNode) bool {
 	var source *UPNode
 
+	//TODO get the right source node by using user location info inside UPFSelectionParams
 	for _, node := range upi.AccessNetwork {
 		if node.Type == UPNODE_AN {
 			source = node
@@ -525,6 +530,9 @@ func (upi *UserPlaneInformation) sortUPFListByName(upfList []*UPNode) []*UPNode 
 
 func (upi *UserPlaneInformation) selectUPPathSource() (*UPNode, error) {
 	// if multiple gNBs exist, select one according to some criterion
+	//TODO select the gNB connected to which the UE is connected... 
+	//TODO get the right source node by using user location info inside UPFSelectionParams
+
 	for _, node := range upi.AccessNetwork {
 		if node.Type == UPNODE_AN {
 			return node, nil

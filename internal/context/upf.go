@@ -86,6 +86,8 @@ type UPF struct {
 
 // UPFSelectionParams ... parameters for upf selection
 type UPFSelectionParams struct {
+	//TODO: add ue location to upf selection parameters
+	UeLocation *models.UserLocation
 	Dnn    string
 	SNssai *SNssai
 	Dnai   string
