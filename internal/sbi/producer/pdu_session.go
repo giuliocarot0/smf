@@ -77,7 +77,7 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 	}
 	
 
-	logger.CtxLog.Debug(string(createData))
+	//logger.CtxLog.Debug(string(createData))
 	//var cellid = createData.UeLocation.NrLocation.GlobalGnbId.GNbId
 	//logger.CtxLog.Debug("Trying to get user location...")	
 	//logger.CtxLog.Debug(cellid)
