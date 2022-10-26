@@ -75,7 +75,9 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 	} else {
 		logger.PduSessLog.Infoln("Send NF Discovery Serving UDM Successfully")
 	}
-
+	var cellid = createData.UeLocation.NrLocation.GlobalGnbId.GNbId
+	logger.CtxLog.Debug("Trying to get user location...")	
+	logger.CtxLog.Debug(cellid)
 	// IP Allocation
 	upfSelectionParams := &smf_context.UPFSelectionParams{
 		//TODO: retrieve user location (at least gNB ID in order to choose an UPF which can communicate with that gNB)
