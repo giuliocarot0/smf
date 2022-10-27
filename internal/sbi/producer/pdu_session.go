@@ -4,7 +4,7 @@ import (
 	"context"
 	"net"
 	"net/http"
-
+	"encoding/json"
 	"github.com/antihax/optional"
 
 	"github.com/free5gc/nas"
@@ -47,11 +47,15 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 
 	// Check duplicate SM Context
 	createData := request.JsonData
+	
 	if dup_smCtx := smf_context.GetSMContextById(createData.Supi, createData.PduSessionId); dup_smCtx != nil {
 		HandlePDUSessionSMContextLocalRelease(dup_smCtx, createData)
 	}
 
 	smContext := smf_context.NewSMContext(createData.Supi, createData.PduSessionId)
+	smContext.UeLocation = createData.UeLocation
+	jsonloc, _ := json.Marshal(smContext.UeLocation.NrLocation)
+	logger.CtxLog.Debugln("SMF Received UE Location: ",string(jsonloc))
 	smContext.SMContextState = smf_context.ActivePending
 	logger.CtxLog.Traceln("SMContextState Change State: ", smContext.SMContextState.String())
 	smContext.SetCreateData(createData)
@@ -78,6 +82,7 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 
 	// IP Allocation
 	upfSelectionParams := &smf_context.UPFSelectionParams{
+		UeLocation: *createData.UeLocation,
 		Dnn: createData.Dnn,
 		SNssai: &smf_context.SNssai{
 			Sst: createData.SNssai.Sst,
