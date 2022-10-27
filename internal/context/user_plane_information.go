@@ -9,6 +9,7 @@ import (
 	"net"
 	"reflect"
 	"sort"
+	"github.com/free5gc/openapi/models"
 
 	"github.com/free5gc/pfcp/pfcpType"
 	"github.com/free5gc/smf/internal/context/pool"
@@ -40,6 +41,7 @@ type UPNode struct {
 	Type   UPNodeType
 	NodeID pfcpType.NodeID
 	ANIP   net.IP
+	CellId string
 	Dnn    string
 	Links  []*UPNode
 	UPF    *UPF
@@ -75,6 +77,8 @@ func NewUserPlaneInformation(upTopology *factory.UserPlaneInformation) *UserPlan
 		switch upNode.Type {
 		case UPNODE_AN:
 			upNode.ANIP = net.ParseIP(node.ANIP)
+			upNode.CellId = string(node.CellId)
+			logger.InitLog.Infoln("gNB correctly initialized in UP: " ,string(node.CellId))
 			anPool[name] = upNode
 		case UPNODE_UPF:
 			// ParseIp() always return 16 bytes
@@ -523,10 +527,11 @@ func (upi *UserPlaneInformation) sortUPFListByName(upfList []*UPNode) []*UPNode 
 	return sortedUpList
 }
 
-func (upi *UserPlaneInformation) selectUPPathSource() (*UPNode, error) {
+func (upi *UserPlaneInformation) selectUPPathSource(Location models.UserLocation) (*UPNode, error) {
 	// if multiple gNBs exist, select one according to some criterion
+	CellId := string(Location.NrLocation.Ncgi.NrCellId)
 	for _, node := range upi.AccessNetwork {
-		if node.Type == UPNODE_AN {
+		if node.Type == UPNODE_AN && node.CellId == CellId{
 			return node, nil
 		}
 	}
@@ -534,7 +539,7 @@ func (upi *UserPlaneInformation) selectUPPathSource() (*UPNode, error) {
 }
 
 func (upi *UserPlaneInformation) SelectUPFAndAllocUEIP(selection *UPFSelectionParams) (*UPNode, net.IP) {
-	source, err := upi.selectUPPathSource()
+	source, err := upi.selectUPPathSource(selection.UeLocation)
 	if err != nil {
 		return nil, nil
 	}

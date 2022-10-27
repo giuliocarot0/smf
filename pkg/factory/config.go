@@ -408,6 +408,7 @@ func (u *UserPlaneInformation) validate() (bool, error) {
 type UPNode struct {
 	Type                 string                 `yaml:"type" valid:"upNodeType,required"`
 	NodeID               string                 `yaml:"nodeID" valid:"host,optional"`
+	CellId               string                 `yaml:"cellID" valid:"type(string),optional"`
 	Addr                 string                 `yaml:"addr" valid:"host,optional"`
 	ANIP                 string                 `yaml:"anIP" valid:"host,optional"`
 	Dnn                  string                 `yaml:"dnn" valid:"type(string),minstringlength(1),optional"`
