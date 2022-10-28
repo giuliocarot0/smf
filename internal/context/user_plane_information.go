@@ -334,9 +334,9 @@ func GenerateDataPath(upPath UPPath, smContext *SMContext) *DataPath {
 func (upi *UserPlaneInformation) GenerateDefaultPath(selection *UPFSelectionParams) bool {
 	var source *UPNode
 	var destinations []*UPNode
-
+	CellId := string(selection.UeLocation.NrLocation.Ncgi.NrCellId)
 	for _, node := range upi.AccessNetwork {
-		if node.Type == UPNODE_AN {
+		if node.Type == UPNODE_AN && node.CellId == CellId {
 			source = node
 			break
 		}
@@ -379,9 +379,9 @@ func (upi *UserPlaneInformation) GenerateDefaultPath(selection *UPFSelectionPara
 
 func (upi *UserPlaneInformation) GenerateDefaultPathToUPF(selection *UPFSelectionParams, destination *UPNode) bool {
 	var source *UPNode
-
+	CellId := string(selection.UeLocation.NrLocation.Ncgi.NrCellId)
 	for _, node := range upi.AccessNetwork {
-		if node.Type == UPNODE_AN {
+		if node.Type == UPNODE_AN && node.CellId == CellId{
 			source = node
 			break
 		}
