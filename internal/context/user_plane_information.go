@@ -9,7 +9,6 @@ import (
 	"net"
 	"reflect"
 	"sort"
-	"github.com/free5gc/openapi/models"
 
 	"github.com/free5gc/pfcp/pfcpType"
 	"github.com/free5gc/smf/internal/context/pool"
@@ -78,7 +77,7 @@ func NewUserPlaneInformation(upTopology *factory.UserPlaneInformation) *UserPlan
 		case UPNODE_AN:
 			upNode.ANIP = net.ParseIP(node.ANIP)
 			upNode.CellId = string(node.CellId)
-			logger.InitLog.Infoln("gNB correctly initialized in UP: " ,string(node.CellId))
+			logger.InitLog.Infoln("gNB correctly initialized in UP: ", string(node.CellId))
 			anPool[name] = upNode
 		case UPNODE_UPF:
 			// ParseIp() always return 16 bytes
@@ -334,7 +333,7 @@ func GenerateDataPath(upPath UPPath, smContext *SMContext) *DataPath {
 func (upi *UserPlaneInformation) GenerateDefaultPath(selection *UPFSelectionParams) bool {
 	var source *UPNode
 	var destinations []*UPNode
-	CellId := string(selection.UeLocation.NrLocation.Ncgi.NrCellId)
+	CellId := selection.CellId
 	for _, node := range upi.AccessNetwork {
 		if node.Type == UPNODE_AN && node.CellId == CellId {
 			source = node
@@ -379,9 +378,9 @@ func (upi *UserPlaneInformation) GenerateDefaultPath(selection *UPFSelectionPara
 
 func (upi *UserPlaneInformation) GenerateDefaultPathToUPF(selection *UPFSelectionParams, destination *UPNode) bool {
 	var source *UPNode
-	CellId := string(selection.UeLocation.NrLocation.Ncgi.NrCellId)
+	CellId := selection.CellId
 	for _, node := range upi.AccessNetwork {
-		if node.Type == UPNODE_AN && node.CellId == CellId{
+		if node.Type == UPNODE_AN && node.CellId == CellId {
 			source = node
 			break
 		}
@@ -527,11 +526,10 @@ func (upi *UserPlaneInformation) sortUPFListByName(upfList []*UPNode) []*UPNode 
 	return sortedUpList
 }
 
-func (upi *UserPlaneInformation) selectUPPathSource(Location models.UserLocation) (*UPNode, error) {
+func (upi *UserPlaneInformation) selectUPPathSource(CellId string) (*UPNode, error) {
 	// if multiple gNBs exist, select one according to some criterion
-	CellId := string(Location.NrLocation.Ncgi.NrCellId)
 	for _, node := range upi.AccessNetwork {
-		if node.Type == UPNODE_AN && node.CellId == CellId{
+		if node.Type == UPNODE_AN && node.CellId == CellId {
 			return node, nil
 		}
 	}
@@ -539,7 +537,7 @@ func (upi *UserPlaneInformation) selectUPPathSource(Location models.UserLocation
 }
 
 func (upi *UserPlaneInformation) SelectUPFAndAllocUEIP(selection *UPFSelectionParams) (*UPNode, net.IP) {
-	source, err := upi.selectUPPathSource(selection.UeLocation)
+	source, err := upi.selectUPPathSource(selection.CellId)
 	if err != nil {
 		return nil, nil
 	}

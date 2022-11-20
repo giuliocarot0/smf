@@ -2,9 +2,10 @@ package producer
 
 import (
 	"context"
+	"encoding/json"
 	"net"
 	"net/http"
-	"encoding/json"
+
 	"github.com/antihax/optional"
 
 	"github.com/free5gc/nas"
@@ -47,7 +48,7 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 
 	// Check duplicate SM Context
 	createData := request.JsonData
-	
+
 	if dup_smCtx := smf_context.GetSMContextById(createData.Supi, createData.PduSessionId); dup_smCtx != nil {
 		HandlePDUSessionSMContextLocalRelease(dup_smCtx, createData)
 	}
@@ -55,7 +56,7 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 	smContext := smf_context.NewSMContext(createData.Supi, createData.PduSessionId)
 	smContext.UeLocation = createData.UeLocation
 	jsonloc, _ := json.Marshal(smContext.UeLocation.NrLocation)
-	logger.CtxLog.Debugln("SMF Received UE Location: ",string(jsonloc))
+	logger.CtxLog.Debugln("SMF Received UE Location: ", string(jsonloc))
 	smContext.SMContextState = smf_context.ActivePending
 	logger.CtxLog.Traceln("SMContextState Change State: ", smContext.SMContextState.String())
 	smContext.SetCreateData(createData)
@@ -82,8 +83,8 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 
 	// IP Allocation
 	upfSelectionParams := &smf_context.UPFSelectionParams{
-		UeLocation: *createData.UeLocation,
-		Dnn: createData.Dnn,
+		CellId: string(createData.UeLocation.NrLocation.Ncgi.NrCellId),
+		Dnn:    createData.Dnn,
 		SNssai: &smf_context.SNssai{
 			Sst: createData.SNssai.Sst,
 			Sd:  createData.SNssai.Sd,
@@ -628,6 +629,15 @@ func HandlePDUSessionSMContextUpdate(smContextRef string, body models.UpdateSmCo
 		if err := smf_context.HandleHandoverRequiredTransfer(body.BinaryDataN2SmInformation, smContext); err != nil {
 			logger.PduSessLog.Errorf("Handle HandoverRequiredTransfer failed: %+v", err)
 		}
+		//What to do with the PDU? Please check the NGAP TS to understand which procedure has to be implemented
+		//What to check: 1. Direct Path Availability, 2. PDU Session Transfer to t-gNB with no direct path, 3. PDU Session has to be released?!
+		/*
+			If the t-gNB is connected to current UPF
+				then suggest the current UPF as PDU Session Anchor (Simple PDUSession Resource Setup Request)
+			Else
+				release current PDU Sessions or remember to send a reconfiguration after the handover procedure finished
+				in any case don't try to transfer the pdu session on the target gnb
+		*/
 		response.JsonData.N2SmInfoType = models.N2SmInfoType_PDU_RES_SETUP_REQ
 
 		if n2Buf, err := smf_context.BuildPDUSessionResourceSetupRequestTransfer(smContext); err != nil {

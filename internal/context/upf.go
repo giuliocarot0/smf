@@ -86,7 +86,7 @@ type UPF struct {
 
 // UPFSelectionParams ... parameters for upf selection
 type UPFSelectionParams struct {
-	UeLocation models.UserLocation
+	CellId string
 	Dnn    string
 	SNssai *SNssai
 	Dnai   string
