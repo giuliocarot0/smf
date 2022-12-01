@@ -484,7 +484,7 @@ func (upi *UserPlaneInformation) selectAnchorUPF(source *UPNode, selection *UPFS
 		findNewNode := false
 		visited[node] = true
 		for _, link := range node.Links {
-			if !visited[link] {
+			if !visited[link] && link.Type != "AN" { //Make sure that the datapath does not end in a second gNB...
 				for _, snssaiInfo := range link.UPF.SNssaiInfos {
 					currentSnssai := &snssaiInfo.SNssai
 					if currentSnssai.Equal(targetSnssai) {
