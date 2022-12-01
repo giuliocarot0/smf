@@ -285,7 +285,6 @@ func HandlePDUSessionSMContextUpdate(smContextRef string, body models.UpdateSmCo
 	response.JsonData = new(models.SmContextUpdatedData)
 
 	smContextUpdateData := body.JsonData
-
 	if body.BinaryDataN1SmMessage != nil {
 		logger.PduSessLog.Traceln("Binary Data N1 SmMessage isn't nil!")
 		m := nas.NewMessage()
@@ -386,6 +385,11 @@ func HandlePDUSessionSMContextUpdate(smContextRef string, body models.UpdateSmCo
 	farList := []*smf_context.FAR{}
 	barList := []*smf_context.BAR{}
 	qerList := []*smf_context.QER{}
+
+	if smContextUpdateData.SmContextStatusUri != "" {
+		//Update the UE Callback URI after a mobility update which may have changed the UE Identity....
+		smContext.SmStatusNotifyUri = smContextUpdateData.SmContextStatusUri
+	}
 
 	switch smContextUpdateData.UpCnxState {
 	case models.UpCnxState_ACTIVATING:
