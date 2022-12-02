@@ -448,7 +448,7 @@ func getPathBetween(cur *UPNode, dest *UPNode, visited map[*UPNode]bool,
 	selectedSNssai := selection.SNssai
 
 	for _, node := range cur.Links {
-		if !visited[node] {
+		if !visited[node] && node.Type != "AN" {
 			if !node.UPF.isSupportSnssai(selectedSNssai) {
 				visited[node] = true
 				continue
