@@ -156,6 +156,13 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 		logger.PduSessLog.Errorln("pcf selection error:", err)
 	}
 
+	OutOfLadnArea := models.ProblemDetails{
+		Title:         "Out of LADN Service Area",
+		Status:        http.StatusForbidden,
+		Detail:        "The request is rejected because the UE is outside the LADN Service Area",
+		Cause:         "OUT_OF_LADN_SERVICE_AREA",
+		InvalidParams: nil,
+	}
 	// LADN Information
 	if smContext.PresenceInLadn == models.PresenceState_IN_AREA {
 		logger.PduSessLog.Debugf("UE is inside LADN Service Area")
@@ -163,7 +170,7 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 		logger.PduSessLog.Errorf("UE is outside LADN Service Area")
 		smf_context.RemoveSMContext(smContext.Ref)
 		return makeErrorResponse(smContext, nasMessage.Cause5GSMOutOfLADNServiceArea,
-			&Nsmf_PDUSession.OutOfLadnArea)
+			&OutOfLadnArea)
 	} else {
 		logger.PduSessLog.Debugf("Current DNN is not a LADN")
 	}
