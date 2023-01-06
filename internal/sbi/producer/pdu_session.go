@@ -2,7 +2,6 @@ package producer
 
 import (
 	"context"
-	"encoding/json"
 	"net"
 	"net/http"
 
@@ -54,13 +53,9 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 	}
 
 	smContext := smf_context.NewSMContext(createData.Supi, createData.PduSessionId)
-	smContext.UeLocation = createData.UeLocation
-	jsonloc, _ := json.Marshal(smContext.UeLocation.NrLocation)
-	logger.CtxLog.Debugln("SMF Received UE Location: ", string(jsonloc))
 	smContext.SMContextState = smf_context.ActivePending
 	logger.CtxLog.Traceln("SMContextState Change State: ", smContext.SMContextState.String())
 	smContext.SetCreateData(createData)
-	smContext.SmStatusNotifyUri = createData.SmContextStatusUri
 
 	smContext.SMLock.Lock()
 	defer smContext.SMLock.Unlock()
@@ -159,6 +154,18 @@ func HandlePDUSessionSMContextCreate(request models.PostSmContextsRequest) *http
 		smContext.Supi, smContext.PDUSessionID)
 	if err := smContext.PCFSelection(); err != nil {
 		logger.PduSessLog.Errorln("pcf selection error:", err)
+	}
+
+	// LADN Information
+	if smContext.PresenceInLadn == models.PresenceState_IN_AREA {
+		logger.PduSessLog.Debugf("UE is inside LADN Service Area")
+	} else if smContext.PresenceInLadn == models.PresenceState_OUT_OF_AREA {
+		logger.PduSessLog.Errorf("UE is outside LADN Service Area")
+		smf_context.RemoveSMContext(smContext.Ref)
+		return makeErrorResponse(smContext, nasMessage.Cause5GSMOutOfLADNServiceArea,
+			&Nsmf_PDUSession.OutOfLadnArea)
+	} else {
+		logger.PduSessLog.Debugf("Current DNN is not a LADN")
 	}
 
 	var smPolicyDecision *models.SmPolicyDecision

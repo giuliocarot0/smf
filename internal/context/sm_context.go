@@ -234,6 +234,8 @@ func (smContext *SMContext) SetCreateData(createData *models.SmContextCreateData
 	smContext.AddUeLocation = createData.AddUeLocation
 	smContext.OldPduSessionId = createData.OldPduSessionId
 	smContext.ServingNfId = createData.ServingNfId
+	smContext.SmStatusNotifyUri = createData.SmContextStatusUri
+
 }
 
 func (smContext *SMContext) BuildCreatedData() *models.SmContextCreatedData {
