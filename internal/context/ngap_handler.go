@@ -144,7 +144,11 @@ func HandleHandoverRequiredTransfer(b []byte, ctx *SMContext) (err error) {
 	if err != nil {
 		return err
 	}
-
+	if handoverRequiredTransfer.DirectForwardingPathAvailability == nil {
+		ctx.DirectForwadingPathAvailability = false
+	} else {
+		ctx.DirectForwadingPathAvailability = true
+	}
 	// TODO: Handle Handover Required Transfer
 	return nil
 }

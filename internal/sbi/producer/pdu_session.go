@@ -676,7 +676,21 @@ func HandlePDUSessionSMContextUpdate(smContextRef string, body models.UpdateSmCo
 			logger.PduSessLog.Warnf("SMContext[%s-%02d] should be Active, but actual %s",
 				smContext.Supi, smContext.PDUSessionID, smContext.SMContextState.String())
 		}
-		smContext.SMContextState = smf_context.ModificationPending
+
+		for _, dataPath := range smContext.Tunnel.DataPathPool {
+			if dataPath.Activated {
+				ANUPF := dataPath.FirstDPNode
+				DLPDR := ANUPF.DownLinkTunnel.PDR
+
+				pdrList = append(pdrList, DLPDR)
+				farList = append(farList, DLPDR.FAR)
+				barList = append(barList, DLPDR.FAR.BAR)
+				qerList = append(qerList, DLPDR.QER...)
+			}
+		}
+
+		smContext.SMContextState = smf_context.PFCPModification
+
 		logger.CtxLog.Traceln("SMContextState Change State: ", smContext.SMContextState.String())
 		smContext.HoState = models.HoState_PREPARED
 		response.JsonData.HoState = models.HoState_PREPARED
@@ -694,7 +708,7 @@ func HandlePDUSessionSMContextUpdate(smContextRef string, body models.UpdateSmCo
 				ContentId: "HANDOVER_CMD",
 			}
 		}
-		response.JsonData.HoState = models.HoState_PREPARING
+		response.JsonData.HoState = models.HoState_PREPARED
 	case models.HoState_COMPLETED:
 		logger.PduSessLog.Traceln("In HoState_COMPLETED")
 		if smContext.SMContextState != smf_context.Active {

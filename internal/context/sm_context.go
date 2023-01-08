@@ -84,6 +84,8 @@ type SMContext struct {
 	DnnConfiguration models.DnnConfiguration
 
 	SMPolicyID string
+	// Handover
+	DirectForwadingPathAvailability bool
 
 	// UP Security support TS 29.502 R16 6.1.6.2.39
 	UpSecurity                                                     *models.UpSecurity
