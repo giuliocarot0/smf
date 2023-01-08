@@ -677,20 +677,7 @@ func HandlePDUSessionSMContextUpdate(smContextRef string, body models.UpdateSmCo
 				smContext.Supi, smContext.PDUSessionID, smContext.SMContextState.String())
 		}
 
-		for _, dataPath := range smContext.Tunnel.DataPathPool {
-			if dataPath.Activated {
-				ANUPF := dataPath.FirstDPNode
-				DLPDR := ANUPF.DownLinkTunnel.PDR
-
-				pdrList = append(pdrList, DLPDR)
-				farList = append(farList, DLPDR.FAR)
-				barList = append(barList, DLPDR.FAR.BAR)
-				qerList = append(qerList, DLPDR.QER...)
-			}
-		}
-
-		smContext.SMContextState = smf_context.PFCPModification
-
+		smContext.SMContextState = smf_context.ModificationPending
 		logger.CtxLog.Traceln("SMContextState Change State: ", smContext.SMContextState.String())
 		smContext.HoState = models.HoState_PREPARED
 		response.JsonData.HoState = models.HoState_PREPARED
@@ -717,7 +704,27 @@ func HandlePDUSessionSMContextUpdate(smContextRef string, body models.UpdateSmCo
 			logger.PduSessLog.Warnf("SMContext[%s-%02d] should be Active, but actual %s",
 				smContext.Supi, smContext.PDUSessionID, smContext.SMContextState.String())
 		}
-		smContext.SMContextState = smf_context.ModificationPending
+
+		smContext.PendingUPF = make(smf_context.PendingUPF)
+		for _, dataPath := range smContext.Tunnel.DataPathPool {
+			ANUPF := dataPath.FirstDPNode
+			DLPDR := ANUPF.DownLinkTunnel.PDR
+			if DLPDR == nil {
+				logger.PduSessLog.Errorf("Downlink Tunnel not updatable")
+			} else {
+				DLPDR.State = smf_context.RULE_UPDATE
+				DLPDR.FAR.State = smf_context.RULE_UPDATE
+				pdrList = append(pdrList, DLPDR)
+				farList = append(farList, DLPDR.FAR)
+				sendPFCPModification = true
+				smContext.SMContextState = smf_context.PFCPModification
+				smContext.PendingUPF[ANUPF.GetNodeIP()] = true
+			}
+		}
+
+		smContext.SMContextState = smf_context.PFCPModification
+		sendPFCPModification = true
+
 		logger.CtxLog.Traceln("SMContextState Change State: ", smContext.SMContextState.String())
 		smContext.HoState = models.HoState_COMPLETED
 		response.JsonData.HoState = models.HoState_COMPLETED
